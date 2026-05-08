@@ -28,13 +28,69 @@ export default function Clock() {
     } catch {}
   }
 
+  // --- ここから追加：位置情報チェックのロジック ---
+  const STORE_LAT = 35.005112995762076;
+  const STORE_LNG = 135.77577479073744;
+  const ALLOWED_DISTANCE = 200; // 200m
+
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
   const punch = async (type: 'in'|'out') => {
+    setLoading(true);
+    
+    // 位置情報の取得
+    if (!navigator.geolocation) {
+      toast.error('お使いの端末は位置情報に対応していません');
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const distance = getDistance(latitude, longitude, STORE_LAT, STORE_LNG);
+
+        // 200m以内かチェック
+        if (distance > ALLOWED_DISTANCE) {
+          toast.error(`お店から離れすぎています（約${Math.round(distance)}m）。\n200m以内で打刻してください。`, { duration: 4000 });
+          setLoading(false);
+          return;
+        }
+
+        // --- 距離がOKなら本来の打刻処理を実行 ---
+        try {
+          const { data } = await api.post('/api/punches', { type });
+          setPunches(p => [...p, data]);
+          toast.success(type === 'in' ? `出勤しました！ ${data.time}` : `退勤しました！ ${data.time}`);
+        } catch (e: any) {
+          toast.error(e.response?.data?.error || 'エラーが発生しました');
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        toast.error('位置情報の取得に失敗しました。設定で許可してください。');
+        setLoading(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+  // --- ここまで ---
     setLoading(true)
     try {
       const { data } = await api.post('/api/punches', { type })
       setPunches(p => [...p, data])
       toast.success(type==='in' ? `出勤しました！ ${data.time}` : `退勤しました！ ${data.time}`)
-    } catch (e: any) { toast.error(e.response?.data?.error || 'エラーが発生しました') }
+ const punch = async (type: 'in'|'out') => {   } catch (e: any) { toast.error(e.response?.data?.error || 'エラーが発生しました') }
     finally { setLoading(false) }
   }
 
