@@ -33,7 +33,7 @@ export default function MyPage() {
         ))}
       </div>
       <div className="card">
-        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}><Lock size:12 color="var(--accent)"/><p className="label" style={{margin:0}}>PINコード変更</p></div>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}><Lock size={12} color="var(--accent)"/><p className="label" style={{margin:0}}>PINコード変更</p></div>
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {[['現在のPIN',cur,setCur],['新しいPIN',next,setNext]].map(([l,v,fn]:any)=>(
             <div key={l}>
