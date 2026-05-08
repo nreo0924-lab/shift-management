@@ -1,4 +1,3 @@
-// src/pages/Clock.tsx
 import { useState, useEffect } from 'react'
 import { Clock as ClockIcon, LogOut, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -28,7 +27,7 @@ export default function Clock() {
     } catch {}
   }
 
-  // --- ここから追加：位置情報チェックのロジック ---
+  // --- 位置情報チェックのロジック ---
   const STORE_LAT = 35.005112995762076;
   const STORE_LNG = 135.77577479073744;
   const ALLOWED_DISTANCE = 200; // 200m
@@ -47,9 +46,8 @@ export default function Clock() {
   const punch = async (type: 'in'|'out') => {
     setLoading(true);
     
-    // 位置情報の取得
     if (!navigator.geolocation) {
-      toast.error('お使いの端末は位置情報に対応していません');
+      toast.error('位置情報がサポートされていません');
       setLoading(false);
       return;
     }
@@ -59,14 +57,12 @@ export default function Clock() {
         const { latitude, longitude } = position.coords;
         const distance = getDistance(latitude, longitude, STORE_LAT, STORE_LNG);
 
-        // 200m以内かチェック
         if (distance > ALLOWED_DISTANCE) {
-          toast.error(`お店から離れすぎています（約${Math.round(distance)}m）。\n200m以内で打刻してください。`, { duration: 4000 });
+          toast.error(`お店から離れすぎです（約${Math.round(distance)}m）。200m以内で打刻してください。`, { duration: 4000 });
           setLoading(false);
           return;
         }
 
-        // --- 距離がOKなら本来の打刻処理を実行 ---
         try {
           const { data } = await api.post('/api/punches', { type });
           setPunches(p => [...p, data]);
@@ -84,15 +80,6 @@ export default function Clock() {
       { enableHighAccuracy: true }
     );
   };
-  // --- ここまで ---
-    setLoading(true)
-    try {
-      const { data } = await api.post('/api/punches', { type })
-      setPunches(p => [...p, data])
-      toast.success(type==='in' ? `出勤しました！ ${data.time}` : `退勤しました！ ${data.time}`)
- const punch = async (type: 'in'|'out') => {   } catch (e: any) { toast.error(e.response?.data?.error || 'エラーが発生しました') }
-    finally { setLoading(false) }
-  }
 
   const last = punches[punches.length - 1]
   const isClockedIn = last?.type === 'in'
