@@ -4,12 +4,9 @@ import {
   Clock, 
   Calendar, 
   User, 
-  Settings, 
-  LogOut, 
   BarChart2, 
-  Users, 
-  ClipboardList, // 修正用アイコン
-  History      // 履歴用アイコン
+  Edit3,    // 修正用アイコン（確実なものに変更）
+  FileText  // 履歴用アイコン（確実なものに変更）
 } from 'lucide-react'
 
 export default function Layout() {
@@ -22,12 +19,11 @@ export default function Layout() {
     navigate('/login')
   }
 
-  // 現在のページが選択されているかチェックする関数
   const isActive = (path: string) => location.pathname === path
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e8eaf2' }}>
-      {/* メインコンテンツ */}
+      {/* メインコンテンツ表示エリア */}
       <main style={{ padding: '20px 16px 100px 16px', maxWidth: '600px', margin: '0 auto' }}>
         <Outlet />
       </main>
@@ -46,33 +42,34 @@ export default function Layout() {
         padding: '10px 5px',
         zIndex: 100
       }}>
-        {/* 全員共通：打刻画面 */}
+        {/* 打刻画面 */}
         <Link to="/" style={navItemStyle(isActive('/'))}>
           <Clock size={20} />
           <span style={navLabelStyle}>打刻</span>
         </Link>
 
-        {/* 全員共通：シフト確認 */}
+        {/* シフト確認 */}
         <Link to="/shift" style={navItemStyle(isActive('/shift'))}>
           <Calendar size={20} />
           <span style={navLabelStyle}>シフト</span>
         </Link>
 
-        {/* ★追加：スタッフ用・給与履歴 */}
+        {/* スタッフ用：勤務・給与履歴 */}
         <Link to="/history" style={navItemStyle(isActive('/history'))}>
-          <History size={20} />
+          <FileText size={20} />
           <span style={navLabelStyle}>履歴</span>
         </Link>
 
-        {/* 管理者限定メニュー */}
+        {/* 管理者専用メニュー */}
         {staff?.isAdmin && (
           <>
-            {/* ★追加：管理者用・勤怠修正 */}
+            {/* 勤怠修正ボタン */}
             <Link to="/admin/attendance" style={navItemStyle(isActive('/admin/attendance'))}>
-              <ClipboardList size={20} color="#00e87a" />
+              <Edit3 size={20} color="#00e87a" />
               <span style={{...navLabelStyle, color: '#00e87a'}}>修正</span>
             </Link>
 
+            {/* 集計ボタン */}
             <Link to="/admin/stats" style={navItemStyle(isActive('/admin/stats'))}>
               <BarChart2 size={20} color="#00e87a" />
               <span style={{...navLabelStyle, color: '#00e87a'}}>集計</span>
@@ -80,6 +77,7 @@ export default function Layout() {
           </>
         )}
 
+        {/* マイページ */}
         <Link to="/mypage" style={navItemStyle(isActive('/mypage'))}>
           <User size={20} />
           <span style={navLabelStyle}>マイ</span>
@@ -89,7 +87,7 @@ export default function Layout() {
   )
 }
 
-// スタイル定義
+// 共通スタイル
 const navItemStyle = (active: boolean) => ({
   display: 'flex',
   flexDirection: 'column' as const,
