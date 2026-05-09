@@ -1,65 +1,106 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { Clock, Calendar, Send, User, Settings, Users, BarChart3, LogOut } from 'lucide-react'
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/store'
-import { nameColor } from '../lib/utils'
-import toast from 'react-hot-toast'
+import { 
+  Clock, 
+  Calendar, 
+  User, 
+  Settings, 
+  LogOut, 
+  BarChart2, 
+  Users, 
+  ClipboardList, // 修正用アイコン
+  History      // 履歴用アイコン
+} from 'lucide-react'
 
 export default function Layout() {
   const { staff, logout } = useAuth()
   const navigate = useNavigate()
-  if (!staff) return null
+  const location = useLocation()
 
-  const nav = [
-    { to:'/', icon:Clock,     label:'打刻',    end:true },
-    { to:'/shift', icon:Calendar, label:'シフト' },
-    { to:'/wish',  icon:Send,     label:'希望'   },
-    { to:'/mypage',icon:User,     label:'マイページ' },
-    ...(staff.isAdmin ? [
-      { to:'/admin/shift', icon:Settings,  label:'シフト管理' },
-      { to:'/admin/staff', icon:Users,     label:'スタッフ'   },
-      { to:'/admin/stats', icon:BarChart3, label:'集計'       },
-    ] : []),
-  ]
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  // 現在のページが選択されているかチェックする関数
+  const isActive = (path: string) => location.pathname === path
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', minHeight:'100dvh' }}>
-      {/* Header */}
-      <header style={{ background:'var(--bg)', borderBottom:'1px solid var(--border)', padding:'10px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <div style={{ width:32, height:32, background:nameColor(staff.name), borderRadius:'4px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:900, color:'#fff', flexShrink:0 }}>{staff.name[0]}</div>
-          <div>
-            <div style={{ fontWeight:900, fontSize:13, lineHeight:1.2 }}>{staff.name}</div>
-            <div style={{ fontSize:8, color:'var(--text3)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.2em' }}>{staff.store?.name || 'BarShift Pro'}</div>
-          </div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          {staff.isAdmin && <span className="tag tag-admin">Admin</span>}
-          <button onClick={() => { logout(); navigate('/login'); toast.success('ログアウトしました') }} style={{ width:32, height:32, background:'var(--bg3)', border:'1px solid var(--border)', color:'var(--text2)', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'var(--r)', transition:'all 0.15s' }}>
-            <LogOut size={14}/>
-          </button>
-        </div>
-      </header>
-
-      {/* Nav */}
-      <nav style={{ background:'var(--bg)', borderBottom:'1px solid var(--border)', overflowX:'auto', position:'sticky', top:53, zIndex:90, scrollbarWidth:'none' }}>
-        <div style={{ display:'flex', padding:'8px 12px', gap:4, minWidth:'max-content' }}>
-          {nav.map(({ to, icon:Icon, label, end }) => (
-            <NavLink key={to} to={to} end={end} style={({ isActive }) => ({
-              display:'flex', alignItems:'center', gap:5, padding:'6px 11px',
-              fontSize:10, fontWeight:900, textTransform:'uppercase', letterSpacing:'0.1em',
-              borderRadius:'var(--r)', whiteSpace:'nowrap', transition:'all 0.15s',
-              background: isActive ? 'var(--text)' : 'transparent',
-              color: isActive ? 'var(--bg)' : 'var(--text3)',
-            })}>
-              <Icon size={11}/>{label}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
-
-      <main style={{ flex:1, padding:'18px 16px', maxWidth:920, width:'100%', margin:'0 auto', paddingBottom:48 }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e8eaf2' }}>
+      {/* メインコンテンツ */}
+      <main style={{ padding: '20px 16px 100px 16px', maxWidth: '600px', margin: '0 auto' }}>
         <Outlet />
       </main>
+
+      {/* 下部ナビゲーションバー */}
+      <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(20, 22, 35, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid #2a2f45',
+        display: 'flex',
+        justifyContent: 'space-around',
+        padding: '10px 5px',
+        zIndex: 100
+      }}>
+        {/* 全員共通：打刻画面 */}
+        <Link to="/" style={navItemStyle(isActive('/'))}>
+          <Clock size={20} />
+          <span style={navLabelStyle}>打刻</span>
+        </Link>
+
+        {/* 全員共通：シフト確認 */}
+        <Link to="/shift" style={navItemStyle(isActive('/shift'))}>
+          <Calendar size={20} />
+          <span style={navLabelStyle}>シフト</span>
+        </Link>
+
+        {/* ★追加：スタッフ用・給与履歴 */}
+        <Link to="/history" style={navItemStyle(isActive('/history'))}>
+          <History size={20} />
+          <span style={navLabelStyle}>履歴</span>
+        </Link>
+
+        {/* 管理者限定メニュー */}
+        {staff?.isAdmin && (
+          <>
+            {/* ★追加：管理者用・勤怠修正 */}
+            <Link to="/admin/attendance" style={navItemStyle(isActive('/admin/attendance'))}>
+              <ClipboardList size={20} color="#00e87a" />
+              <span style={{...navLabelStyle, color: '#00e87a'}}>修正</span>
+            </Link>
+
+            <Link to="/admin/stats" style={navItemStyle(isActive('/admin/stats'))}>
+              <BarChart2 size={20} color="#00e87a" />
+              <span style={{...navLabelStyle, color: '#00e87a'}}>集計</span>
+            </Link>
+          </>
+        )}
+
+        <Link to="/mypage" style={navItemStyle(isActive('/mypage'))}>
+          <User size={20} />
+          <span style={navLabelStyle}>マイ</span>
+        </Link>
+      </nav>
     </div>
   )
+}
+
+// スタイル定義
+const navItemStyle = (active: boolean) => ({
+  display: 'flex',
+  flexDirection: 'column' as const,
+  alignItems: 'center',
+  textDecoration: 'none',
+  gap: '4px',
+  color: active ? '#00e87a' : '#8a8f9d',
+  transition: '0.2s'
+})
+
+const navLabelStyle = {
+  fontSize: '10px',
+  fontWeight: 700
 }

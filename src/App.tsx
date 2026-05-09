@@ -10,6 +10,8 @@ import MyPage from './pages/MyPage'
 import AdminShift from './pages/AdminShift'
 import AdminStaff from './pages/AdminStaff'
 import AdminStats from './pages/AdminStats'
+import AdminAttendance from './pages/AdminAttendance' // ← 追加しました
+import MyHistory from './pages/MyHistory'           // ← 追加しました
 
 function Guard({ children, admin=false }: { children: React.ReactNode; admin?: boolean }) {
   const { token, staff } = useAuth()
@@ -34,9 +36,12 @@ export default function App() {
           <Route path="shift" element={<Shift />} />
           <Route path="wish" element={<Wish />} />
           <Route path="mypage" element={<MyPage />} />
+          <Route path="history" element={<MyHistory />} /> {/* ← スタッフ履歴への道を追加 */}
+          
           <Route path="admin/shift" element={<Guard admin><AdminShift /></Guard>} />
           <Route path="admin/staff" element={<Guard admin><AdminStaff /></Guard>} />
           <Route path="admin/stats" element={<Guard admin><AdminStats /></Guard>} />
+          <Route path="admin/attendance" element={<Guard admin><AdminAttendance /></Guard>} /> {/* ← 管理者修正への道を追加 */}
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
