@@ -42,3 +42,53 @@ export function calcPay(wage:number, type:'part-time'|'full-time', stdHours:numb
 }
 
 export function yen(n:number) { return `¥${Math.round(n).toLocaleString('ja-JP')}` }
+// --- ここから追記 ---
+
+/**
+ * 10日締めに基づいた開始日と終了日を取得する
+ * 例: 今日が5月9日なら、4月11日〜5月10日を返す
+ */
+export function getPayPeriod(d: Date = new Date()) {
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const day = d.getDate();
+
+  let start: Date;
+  let end: Date;
+
+  if (day <= 10) {
+    // 10日以前：先月11日 〜 今月10日
+    start = new Date(year, month - 1, 11);
+    end = new Date(year, month, 10);
+  } else {
+    // 11日以降：今月11日 〜 来月10日
+    start = new Date(year, month, 11);
+    end = new Date(year, month + 1, 10);
+  }
+  
+  return {
+    start: dateDk(start),
+    end: dateDk(end),
+    label: `${start.getMonth() + 1}/${start.getDate()}〜${end.getMonth() + 1}/${end.getDate()}`
+  };
+}
+
+/**
+ * 打刻データに「修正済み」や「労働時間」の情報を付与して整形する
+ */
+export function formatPunchData(punches: any[], hourlyRate: number) {
+  // 日付ごとに「出勤」と「退勤」をペアにする処理（簡易版）
+  // ※実際のデータ構造に合わせて調整が必要な場合があります
+  return punches.map(p => {
+    // 労働時間の計算などは既存の calcPay を活用できます
+    // ここでは「修正フラグ」などの基本情報を整理して返します
+    return {
+      ...p,
+      isEdited: p.is_edited || false, // Neonのカラム名に合わせる
+      originalTime: p.original_time || null,
+      // 表示用の給与計算（時給×時間など）
+      displayPay: p.workingHours ? p.workingHours * hourlyRate : 0 
+    };
+  });
+}
+// --- ここまで追記 ---
